@@ -4,7 +4,7 @@
             {{ post.title }}
         </div>
         <div class="value">
-            <value-item v-for="clue in post.clues" :post="clue" />
+            <value-item v-for="clue in post.clues" :post="clue" @custom-change="handleChange" />
         </div>
     </div>
 </template>
@@ -21,6 +21,15 @@ export default defineComponent({
     },
     components: {
         ValueItem
+    },
+    setup(props, {emit}) {
+        const handleChange = (score: number) => {
+            emit('updateScore', score)
+        }
+
+        return {
+            handleChange
+        }
     }
 })
 </script>
@@ -32,11 +41,16 @@ export default defineComponent({
     }
 
     .title {
-        width: 200px;
+        width: 250px;
+        height: 70px;
         padding: 10px;
         color: #fff;
-        font-size: 25px;
+        font-size: 20px;
         font-weight: bold;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        text-transform: capitalize;
     }
 
     .value {
