@@ -4,6 +4,7 @@
         <div class="navbar__btns">
             <!-- <router-link class="navbar-menu main" to="/auth">Главная</router-link> | -->
             <router-link class="navbar-menu game" to="/game"> Играть </router-link>
+            <router-link class="navbar-menu game" to="/test"> test </router-link>
         </div>
     </div>
 </template>

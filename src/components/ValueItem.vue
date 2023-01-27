@@ -4,8 +4,7 @@
             <v-col cols="auto">
                 <v-dialog v-model="dialog" fullscreen transition="dialog-bottom-transition">
                     <template v-slot:activator="{ props }">
-                        <v-btn :disabled="answer.length > 0 || msg == 'Вы не ответили на вопрос'" class="value-inner"
-                            :class="{ rightBg: idValue == post.id && msg == 'Вы ответили правильно', wrongBg: idValue == post.id && msg == 'Вы ответили не правильно' || msg == 'Вы не ответили на вопрос' }"
+                        <v-btn :disabled="isAnswered || msg == 'Вы не ответили на вопрос'" class="value-inner" :class="color?.color"
                             v-bind="props" @click="startTimer(post.id)"> {{
                                 post.value == null ? '500' : post.value
                             }}
@@ -76,71 +75,97 @@ let timer = ref(5);
 let intervalId: any = null
 const dialog = ref(false)
 const idValue = ref(null)
-const answer: any = ref('');
+let answer: any = '';
 const msg: any = ref('');
 const isCheckAnswer: any = ref(true);
 const score: any = ref(0);
+let color: any = {}
+const isAnswered: any = ref(false);
 
 const close = () => {
     dialog.value = false;
     clearInterval(intervalId);
 }
 
-const setAnswersToLocalStorage = (idValue: any, score: any, color: any) => {
+const setAnswersToLocalStorage = (id: any, answered: any, userScore: any, color: any) => {
     const ArrAnswers = JSON.parse(`${localStorage.getItem('answers')}`)
     if (ArrAnswers == null) {
         localStorage.setItem('answers', JSON.stringify([]))
     } else {
         const prevAnswers = JSON.parse(`${localStorage.getItem('answers')}`)
-        localStorage.setItem('answers', JSON.stringify([...prevAnswers, { idValue, score, color }]))
+        localStorage.setItem('answers', JSON.stringify([...prevAnswers, { id, answered, userScore, color }]))
     }
 }
 
+const totalSumValue = () => {
+    const ArrAnswers = JSON.parse(`${localStorage.getItem('answers')}`)
+    ArrAnswers.forEach((Answer: { color: string; userScore: number; }) => {
+        if (Answer.color == 'green') {
+            score.value += Answer.userScore;
+            emit('customChange', score.value)
+        } else if(Answer.color == 'red') {
+            score.value -= Answer.userScore;
+            emit('customChange', score.value)
+        }
+    });
+}
+
+const addDataAnswers = (id: any) => {
+    const ArrAnswers = JSON.parse(`${localStorage.getItem('answers')}`)
+    const itemId = ArrAnswers.find((answerItem: { id: any; answered: boolean, userScore: number, color: string }) => answerItem.id == id);
+    isAnswered.value = itemId?.answered;
+    color = itemId;
+}
+
 const startTimer = (id: any) => {
-
-    idValue.value = id;
-
+    // idValue.value = id;
     intervalId = setInterval(() => {
         if (timer.value > 0) {
             timer.value--
             if (isCheckAnswer.value == false && timer.value > 0) {
                 clearInterval(intervalId);
-                // close();
             }
         } else {
             clearInterval(intervalId);
             isCheckAnswer.value = false;
             msg.value = 'Вы не ответили на вопрос';
-            score.value -= post.value;
-            emit('customChange', score)
-            setAnswersToLocalStorage(idValue, score, 'red');
-            // close();
+            // score.value -= post.value;
+            // emit('customChange', score)
+            setAnswersToLocalStorage(post.id, true, post.value, 'red');
+            addDataAnswers(post.id);
         }
     }, 1000)
 }
 
 const checkAnswer = () => {
-    if (answer.value) {
+    if (answer) {
         isCheckAnswer.value = false;
-        if (answer.value == post.answer) {
+        if (answer == post.answer) {
             msg.value = 'Вы ответили правильно';
-            score.value += post.value;
-            emit('customChange', score)
-            setAnswersToLocalStorage(idValue, score, 'green');
+            // score.value += post.value;
+            setAnswersToLocalStorage(post.id, true, post.value, 'green');
+            addDataAnswers(post.id);
+            totalSumValue()
         }
         else {
             msg.value = 'Вы ответили не правильно';
-            score.value -= post.value;
-            emit('customChange', score)
-            setAnswersToLocalStorage(idValue, score, 'red');
+            // score.value -= post.value;
+            // emit('customChange', score.value)
+            setAnswersToLocalStorage(post.id, true, post.value, 'red');
+            addDataAnswers(post.id);
+            totalSumValue();
         }
     }
 }
 
+addDataAnswers(post.id);
+totalSumValue()
+
+// addDataAnswers(post.id);
 </script>
 
 
-<style scoped>
+<style>
 .main-block {
     width: 100%;
     height: 100%;
@@ -161,6 +186,16 @@ const checkAnswer = () => {
 
 .post {
     line-height: 2.0;
+}
+
+.red {
+    background-color: red !important;
+    color: #fff !important;
+}
+
+.green {
+    background-color: green !important;
+    color: #fff !important;
 }
 
 .value-inner {
@@ -188,15 +223,8 @@ const checkAnswer = () => {
     color: green;
 }
 
-.rightBg {
-    background-color: green;
-}
-
 .wrong {
     color: red;
 }
 
-.wrongBg {
-    background-color: red;
-}
 </style>

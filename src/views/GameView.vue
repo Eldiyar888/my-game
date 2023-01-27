@@ -28,8 +28,8 @@ export default defineComponent({
     const posts: any = ref([]);
     const score = ref(0)
 
-    const handleChangeScore = (scoreNew: any) => {
-      score.value += scoreNew.value;
+    const handleChangeScore = (scoreNew: number) => {
+      score.value = scoreNew;
     }
 
     const fetchPosts = async () => {
@@ -48,7 +48,6 @@ export default defineComponent({
                 // const uniqClues = Array.from(new Set(category.clues.filter((clue: { value: any; }) => clue.value == 100 || 200 || 300 || 400 || 500)))
                 // let newClues = uniqClues.slice(0, 5)
 
-                console.log('!!!!', category)
 
                 const newCategory = {
                     title: category.title,
@@ -56,7 +55,6 @@ export default defineComponent({
                     clues: newClues
                 }
                 posts.value.push(newCategory);
-                console.log(posts.value)
             }))
         } catch (e) {
             alert(e)
