@@ -4,7 +4,7 @@
             {{ post.title }}
         </div>
         <div class="value">
-            <value-item v-for="clue in post.clues" :post="clue" @custom-change="handleChange" />
+            <value-item v-for="clue in post.clues" :post="clue" :totalValue="totalValue" />
         </div>
     </div>
 </template>
@@ -12,30 +12,28 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import ValueItem from './ValueItem.vue';
+
 export default defineComponent({
     props: {
         post: {
             type: <any[]>[],
             required: true
+        },
+        totalValue: {
+            type: Object
         }
-    },
+    },  
     components: {
         ValueItem
     },
-    setup(props, {emit}) {
-        const handleChange = (score: number) => {
-            emit('updateScore', score)
-        }
-
-        return {
-            handleChange
-        }
+    setup() {
     }
 })
 </script>
 
 <style scoped>
     .game-inner-wrapper {
+        height: 100%;
         display: flex;
         align-items: center;
     }

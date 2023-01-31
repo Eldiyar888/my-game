@@ -1,12 +1,12 @@
 <template>
-    <div>
+    <div class="value-item">
         <v-row justify="space-around">
             <v-col cols="auto">
                 <v-dialog v-model="dialog" fullscreen transition="dialog-bottom-transition">
                     <template v-slot:activator="{ props }">
-                        <v-btn :disabled="isAnswered || msg == 'Вы не ответили на вопрос'" class="value-inner" :class="color?.color"
-                            v-bind="props" @click="startTimer(post.id)"> {{
-                                post.value == null ? '500' : post.value
+                        <v-btn :disabled="isAnswered || msg == 'Вы не ответили на вопрос'" class="value-inner"
+                            :class="color?.color" v-bind="props" @click="startTimer(post.id)"> {{
+                                post.value
                             }}
                         </v-btn>
                     </template>
@@ -58,7 +58,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, ref } from 'vue';
+import { defineProps, onMounted, onUpdated, ref, watch } from 'vue';
 const emit = defineEmits(['customChange'])
 interface Post {
     id: number
@@ -68,23 +68,24 @@ interface Post {
 }
 interface ItemProps {
     post: Post
+    totalValue: (value: number, bool: boolean) => void
 }
-const { post } = defineProps<ItemProps>()
+const { post, totalValue } = defineProps<ItemProps>()
 
-let timer = ref(5);
+const seconds = 60;
+let timer = ref(seconds);
 let intervalId: any = null
 const dialog = ref(false)
-const idValue = ref(null)
 let answer: any = '';
 const msg: any = ref('');
 const isCheckAnswer: any = ref(true);
-const score: any = ref(0);
 let color: any = {}
 const isAnswered: any = ref(false);
 
 const close = () => {
     dialog.value = false;
     clearInterval(intervalId);
+    timer.value = seconds;
 }
 
 const setAnswersToLocalStorage = (id: any, answered: any, userScore: any, color: any) => {
@@ -97,19 +98,6 @@ const setAnswersToLocalStorage = (id: any, answered: any, userScore: any, color:
     }
 }
 
-const totalSumValue = () => {
-    const ArrAnswers = JSON.parse(`${localStorage.getItem('answers')}`)
-    ArrAnswers.forEach((Answer: { color: string; userScore: number; }) => {
-        if (Answer.color == 'green') {
-            score.value += Answer.userScore;
-            emit('customChange', score.value)
-        } else if(Answer.color == 'red') {
-            score.value -= Answer.userScore;
-            emit('customChange', score.value)
-        }
-    });
-}
-
 const addDataAnswers = (id: any) => {
     const ArrAnswers = JSON.parse(`${localStorage.getItem('answers')}`)
     const itemId = ArrAnswers.find((answerItem: { id: any; answered: boolean, userScore: number, color: string }) => answerItem.id == id);
@@ -118,7 +106,6 @@ const addDataAnswers = (id: any) => {
 }
 
 const startTimer = (id: any) => {
-    // idValue.value = id;
     intervalId = setInterval(() => {
         if (timer.value > 0) {
             timer.value--
@@ -129,10 +116,9 @@ const startTimer = (id: any) => {
             clearInterval(intervalId);
             isCheckAnswer.value = false;
             msg.value = 'Вы не ответили на вопрос';
-            // score.value -= post.value;
-            // emit('customChange', score)
             setAnswersToLocalStorage(post.id, true, post.value, 'red');
             addDataAnswers(post.id);
+            totalValue(post.value, false)
         }
     }, 1000)
 }
@@ -142,30 +128,28 @@ const checkAnswer = () => {
         isCheckAnswer.value = false;
         if (answer == post.answer) {
             msg.value = 'Вы ответили правильно';
-            // score.value += post.value;
             setAnswersToLocalStorage(post.id, true, post.value, 'green');
             addDataAnswers(post.id);
-            totalSumValue()
+            totalValue(post.value, true)
         }
         else {
             msg.value = 'Вы ответили не правильно';
-            // score.value -= post.value;
-            // emit('customChange', score.value)
             setAnswersToLocalStorage(post.id, true, post.value, 'red');
             addDataAnswers(post.id);
-            totalSumValue();
+            totalValue(post.value, false)
         }
     }
 }
 
 addDataAnswers(post.id);
-totalSumValue()
 
-// addDataAnswers(post.id);
 </script>
 
-
 <style>
+
+.value-item {
+    height: 100%;
+}
 .main-block {
     width: 100%;
     height: 100%;

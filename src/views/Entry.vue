@@ -17,7 +17,7 @@
 
 <script setup lang="ts">
 import router from '@/router';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 
 const name = ref('');
 
@@ -25,18 +25,25 @@ const handleClick = () => {
         let regexp = /^[а-яА-ЯёЁa-zA-Z0-9-_]+$/
         if (name.value && regexp.test(name.value) && name.value.length > 1) {
             router.push({path: '/game'})
+            localStorage.setItem('name', JSON.stringify(name.value));
+            localStorage.setItem('isGameStarted', JSON.stringify(true));
         }
         else {
             alert('От двух символов, разрешены английские и русские буквы, числа и знак подчеркивания')
         }
     }
+
+    onMounted(() => {
+       const isStarted = localStorage.getItem('isGameStarted')
+       console.log(isStarted)
+    })
 </script>
 
 <style scoped>
 .entry {
+    height: calc(100vh - 100px);
     display: flex;
     align-items: center;
     justify-content: center;
-    height: calc(100% - 100px);
 }
 </style>

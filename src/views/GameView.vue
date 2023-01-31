@@ -1,14 +1,16 @@
 <template>
-  <div class="game">
-    <div>
-      <v-card style="color: gold" color="#151b4b">
-        <v-card-title>
-          <h3>Заработанные баллы: {{ score }}</h3>
-        </v-card-title>
-      </v-card>
-    </div>
-    <div>
-      <game-item v-for="post in posts" :post="post" :key="post.id" @updateScore="handleChangeScore" />
+  <div class="wrapper-game">
+    <div class="game">
+      <div>
+        <v-card style="color: gold;" color="#151b4b">
+          <v-card-title>
+            <h3>Заработанные баллы: {{ score }}</h3>
+          </v-card-title>
+        </v-card>
+      </div>
+      <div>
+        <game-item v-for="post in posts" :post="post" :key="post.id" :totalValue="totalValue" />
+      </div>
     </div>
   </div>
 </template>
@@ -28,55 +30,80 @@ export default defineComponent({
     const posts: any = ref([]);
     const score = ref(0)
 
-    const handleChangeScore = (scoreNew: number) => {
-      score.value = scoreNew;
+    const totalScore = () => {
+      const ArrAnswers = JSON.parse(`${localStorage.getItem('answers')}`)
+      ArrAnswers.forEach((Answer: { color: string; userScore: number; }) => {
+        if (Answer.color == 'green') {
+          score.value += Answer.userScore;
+        } else if (Answer.color == 'red') {
+          score.value -= Answer.userScore;
+        }
+      });
     }
 
+    const totalValue = (value: number, bool: boolean) => {
+      bool ? score.value += value : score.value -= value
+    }
     const fetchPosts = async () => {
-        const categoriesId = [8, 15, 6, 20, 5]
-        try {
-            const categories = categoriesId.map(async categoryId => {
-                return new Promise(async (resolve) => {
-                    const response = await axios.get(`http://jservice.io/api/category?id=${categoryId}`);
-                    resolve(response.data);
-                })
-            })
-            Promise.all(categories).then(res => res.forEach((category: any) => {
-                let newClues = category.clues.slice(0, 5)
-                // let newClues = category.clues.filter((clue: { value: any; }) => clue.value == 100 || clue.value == 200 || clue.value == 300 || clue.value == 400 || clue.value == 500).slice(0, 5)
+      const response = await axios.get('http://jservice.io/api/clues?min_date=1985-02-20');
+      const dataObj: any = {};
+      const answers = response.data.filter((answer: { value: null; }) => answer.value !== null)
+      answers.forEach((item: { category: { title: string | number; }; }) => {
+        dataObj[item.category.title] = []
+      })
 
-                // const uniqClues = Array.from(new Set(category.clues.filter((clue: { value: any; }) => clue.value == 100 || 200 || 300 || 400 || 500)))
-                // let newClues = uniqClues.slice(0, 5)
-
-
-                const newCategory = {
-                    title: category.title,
-                    id: category.id,
-                    clues: newClues
-                }
-                posts.value.push(newCategory);
-            }))
-        } catch (e) {
-            alert(e)
+      Object.keys(dataObj).forEach((obj) => {
+        answers.forEach((item: { category: { title: string; }; }) => {
+          if (item.category.title === obj) {
+            dataObj[obj].push(item)
+          }
+          dataObj[obj].sort(
+            (a: { value: number }, b: { value: number }) => a.value - b.value
+          )
+        })
+        if (dataObj[obj].length != 5) {
+          delete dataObj[obj]
         }
+      })
+
+      const data = [];
+
+      for (const key in dataObj) {
+        const obj = {
+          title: key,
+          clues: dataObj[key]
+        }
+        data.push(obj);
+      }
+      posts.value = data;
     }
 
     onMounted(fetchPosts);
-
+    onMounted(() => {
+      totalScore();
+      const isStarted = localStorage.getItem('isGameStarted')
+      console.log(isStarted)
+    })
     return {
-        posts, score, handleChangeScore
+      posts, score, totalValue
     }
   }
 })
 </script>
 
 <style scoped>
+.wrapper-game {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: space-evenly;
+}
+
 .game {
-  height: 100%;
+  min-height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: space-evenly;
-  background-color: #2a3698;
-}
+} 
 </style>
