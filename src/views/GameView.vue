@@ -9,17 +9,29 @@
         </v-card>
       </div>
       <div>
-        <game-item v-for="post in posts" :post="post" :key="post.id" :totalValue="totalValue" />
+        <game-item v-for="post in posts" :post="post" :totalValue="totalValue" />
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref, onMounted, Ref } from 'vue';
 import GameItem from '../components/TitleItem.vue';
 import Navbar from '@/components/Navbar.vue';
 import axios from 'axios';
+
+export interface IClues {
+  id: number,
+  answer: string,
+  question: string,
+  value: number
+}
+
+export interface IPosts {
+  title: string,
+  clues: IClues[]
+}
 
 export default defineComponent({
   components: {
@@ -27,7 +39,8 @@ export default defineComponent({
     Navbar
   },
   setup() {
-    const posts: any = ref([]);
+
+    const posts: Ref<IPosts[]> = ref([]);
     const score = ref(0)
 
     const totalScore = () => {
@@ -81,8 +94,6 @@ export default defineComponent({
     onMounted(fetchPosts);
     onMounted(() => {
       totalScore();
-      const isStarted = localStorage.getItem('isGameStarted')
-      console.log(isStarted)
     })
     return {
       posts, score, totalValue
@@ -105,5 +116,5 @@ export default defineComponent({
   flex-direction: column;
   align-items: center;
   justify-content: space-evenly;
-} 
+}
 </style>

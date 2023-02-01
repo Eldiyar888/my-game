@@ -16,11 +16,11 @@ import ValueItem from './ValueItem.vue';
 export default defineComponent({
     props: {
         post: {
-            type: <any[]>[],
+            type: Object,
             required: true
         },
         totalValue: {
-            type: Object
+            type: Function
         }
     },  
     components: {

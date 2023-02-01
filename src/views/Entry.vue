@@ -17,9 +17,9 @@
 
 <script setup lang="ts">
 import router from '@/router';
-import { onMounted, ref } from 'vue';
+import { onMounted, Ref, ref } from 'vue';
 
-const name = ref('');
+const name: Ref<string> = ref('');
 
 const handleClick = () => {
         let regexp = /^[а-яА-ЯёЁa-zA-Z0-9-_]+$/
@@ -35,7 +35,6 @@ const handleClick = () => {
 
     onMounted(() => {
        const isStarted = localStorage.getItem('isGameStarted')
-       console.log(isStarted)
     })
 </script>
 

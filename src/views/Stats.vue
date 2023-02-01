@@ -46,17 +46,32 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, Ref, ref } from 'vue';
 
-const currentName: any = ref('')
-const currentTotalAnswers: any = ref(0)
-const currentCountRightAnswers: any = ref(0)
-const currentCountWrongAnswers: any = ref(0)
-const currentScore: any = ref(0)
+interface IStats {
+    name: string,
+    total: number,
+    UserScore: number,
+    right: number,
+    wrong: number
+}
 
-let stats: any = ref('');
+interface IAnswers {
+    id: number,
+    answered: boolean,
+    userScore: number,
+    color: string
+}
 
-const compute = (answers: any[]) => {
+const currentName: Ref<string> = ref('')
+const currentTotalAnswers: Ref<number> = ref(0)
+const currentCountRightAnswers: Ref<number> = ref(0)
+const currentCountWrongAnswers: Ref<number> = ref(0)
+const currentScore: Ref<number> = ref(0)
+
+let stats: Ref<IStats[]> = ref([]);
+
+const compute = (answers: IAnswers[]) => {
     return {
         total: answers.length,
         right: answers.filter((item: { color: string; }) => item.color === 'green').length,

@@ -5,7 +5,7 @@
                 <v-dialog v-model="dialog" fullscreen transition="dialog-bottom-transition">
                     <template v-slot:activator="{ props }">
                         <v-btn :disabled="isAnswered || msg == 'Вы не ответили на вопрос'" class="value-inner"
-                            :class="color?.color" v-bind="props" @click="startTimer(post.id)"> {{
+                            :class="color?.color" v-bind="props" @click="startTimer()"> {{
                                 post.value
                             }}
                         </v-btn>
@@ -59,29 +59,43 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, defineProps, onMounted, onUpdated, ref, watch } from 'vue';
-const emit = defineEmits(['customChange'])
+import { computed, defineProps, onMounted, onUpdated, Ref, ref, watch } from 'vue';
+
+export interface IColor {
+    id: number,
+    answered: boolean,
+    userScore: number,
+    color: string
+}
+
 interface Post {
     id: number
     value: number
     question: string
     answer: string
 }
+
 interface ItemProps {
     post: Post
     totalValue: (value: number, bool: boolean) => void
 }
+
 const { post, totalValue } = defineProps<ItemProps>()
 
-const seconds = 5;
-let timer = ref(seconds);
-let intervalId: any = null
-const dialog = ref(false)
-let answer: any = '';
-const msg: any = ref('');
-const isCheckAnswer: any = ref(true);
-let color: any = {}
-const isAnswered: any = ref(false);
+const seconds: number = 5;
+let timer: Ref<number> = ref(seconds);
+let intervalId: number | undefined = 0
+const dialog: Ref<boolean> = ref(false)
+let answer: string = '';
+const msg: Ref<string> = ref('');
+const isCheckAnswer: Ref<boolean> = ref(true);
+let color: IColor = {
+    id: 0,
+    answered: false,
+    userScore: 0,
+    color: ''
+}
+const isAnswered: Ref<boolean> = ref(false);
 
 let snackbar: any = ref(false);
 
@@ -93,7 +107,7 @@ const close = () => {
     timer.value = seconds;
 }
 
-const setAnswersToLocalStorage = (id: any, answered: any, userScore: any, color: any) => {
+const setAnswersToLocalStorage = (id: number, answered: boolean, userScore: number, color: string) => {
     const ArrAnswers = JSON.parse(`${localStorage.getItem('answers')}`)
     if (ArrAnswers == null) {
         localStorage.setItem('answers', JSON.stringify([]))
@@ -103,14 +117,14 @@ const setAnswersToLocalStorage = (id: any, answered: any, userScore: any, color:
     }
 }
 
-const addDataAnswers = (id: any) => {
+const addDataAnswers = (id: number) => {
     const ArrAnswers = JSON.parse(`${localStorage.getItem('answers')}`)
-    const itemId = ArrAnswers.find((answerItem: { id: any; answered: boolean, userScore: number, color: string }) => answerItem.id == id);
+    const itemId = ArrAnswers.find((answerItem: { id: number; answered: boolean, userScore: number, color: string }) => answerItem.id == id);
     isAnswered.value = itemId?.answered;
     color = itemId;
 }
 
-const startTimer = (id: any) => {
+const startTimer = () => {
     intervalId = setInterval(() => {
         if (timer.value > 0) {
             timer.value--

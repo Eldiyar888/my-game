@@ -13,8 +13,10 @@
 
 <script lang="ts" setup>
 import { useRoute } from 'vue-router';
+import { IColor} from '../components/ValueItem.vue';
 
-const compute = (answers: any[]) => {
+
+const compute = (answers: IColor[]) => {
     return {
         total: answers.length,
         right: answers.filter((item: { color: string; }) => item.color === 'green').length,
@@ -39,6 +41,7 @@ const logout = () => {
         localStorage.setItem('statistics', JSON.stringify([]))
     } else {
         const prevAnswers = JSON.parse(`${localStorage.getItem('answers')}`)
+        console.log(prevAnswers)
         const prevStats = JSON.parse(`${localStorage.getItem('statistics')}`)
         const name = JSON.parse(`${localStorage.getItem('name')}`);
         const { UserScore, total, right, wrong } = compute(prevAnswers);
