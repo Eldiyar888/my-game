@@ -9,6 +9,17 @@
                                 post.value
                             }}
                         </v-btn>
+                        <v-snackbar color="#151b4b" vertical :timeout="3000" v-model="snackbar" multi-line>
+                            <div :class="{ right: msg == 'Вы ответили правильно', wrong: msg == 'Вы ответили не правильно' }"> {{ msg }}</div>
+                            <p> Вопрос: {{ post.question }}</p>
+                            <p> Правильный ответ: {{ post.answer }}</p>
+                            <p> {{ result }} </p>
+                            <template v-slot:actions>
+                                <v-btn color="red" variant="text" @click="snackbar = false">
+                                    Close
+                                </v-btn>
+                            </template>
+                        </v-snackbar>
                     </template>
                     <template v-slot:default="{ isActive }">
                         <v-card>
@@ -20,7 +31,7 @@
                             </v-toolbar>
                             <v-card-text class="card-text">
                                 <div class="text-h2 pa-12">
-                                    <v-card v-if="isCheckAnswer">
+                                    <v-card>
                                         <v-card-text>
                                             <h1>{{ post.question }} </h1>
                                         </v-card-text>
@@ -33,16 +44,6 @@
                                                 Подтвердить
                                             </v-btn>
                                         </v-card-text>
-                                    </v-card>
-                                    <v-card v-else>
-                                        <v-alert style="font-size: 20px;" border="top" border-color="#151b4b"
-                                            elevation="2">
-                                            <p class="post"> {{ post.question }} </p>
-                                            <p class="post"
-                                                :class="{ right: msg == 'Вы ответили правильно', wrong: msg == 'Вы ответили не правильно' }">
-                                                {{ msg }}</p>
-                                            <p class="post right">Правильный ответ: {{ post.answer }}</p>
-                                        </v-alert>
                                     </v-card>
                                 </div>
                             </v-card-text>
@@ -58,7 +59,7 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps, onMounted, onUpdated, ref, watch } from 'vue';
+import { computed, defineProps, onMounted, onUpdated, ref, watch } from 'vue';
 const emit = defineEmits(['customChange'])
 interface Post {
     id: number
@@ -72,7 +73,7 @@ interface ItemProps {
 }
 const { post, totalValue } = defineProps<ItemProps>()
 
-const seconds = 60;
+const seconds = 5;
 let timer = ref(seconds);
 let intervalId: any = null
 const dialog = ref(false)
@@ -81,6 +82,10 @@ const msg: any = ref('');
 const isCheckAnswer: any = ref(true);
 let color: any = {}
 const isAnswered: any = ref(false);
+
+let snackbar: any = ref(false);
+
+const result = computed(() => msg.value === 'Вы ответили правильно' ? `Вы заработали ${post.value} очков` : `Вы потеряли ${post.value} очков`);
 
 const close = () => {
     dialog.value = false;
@@ -119,6 +124,8 @@ const startTimer = (id: any) => {
             setAnswersToLocalStorage(post.id, true, post.value, 'red');
             addDataAnswers(post.id);
             totalValue(post.value, false)
+            close();
+            snackbar.value = true;
         }
     }, 1000)
 }
@@ -139,6 +146,8 @@ const checkAnswer = () => {
             totalValue(post.value, false)
         }
     }
+    close();
+    snackbar.value = true;
 }
 
 addDataAnswers(post.id);
@@ -146,10 +155,10 @@ addDataAnswers(post.id);
 </script>
 
 <style>
-
 .value-item {
     height: 100%;
 }
+
 .main-block {
     width: 100%;
     height: 100%;
@@ -210,5 +219,4 @@ addDataAnswers(post.id);
 .wrong {
     color: red;
 }
-
 </style>
